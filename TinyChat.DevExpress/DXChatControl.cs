@@ -14,7 +14,7 @@ public class DXChatControl : ChatControl
 	protected override IChatMessageControl CreateMessageControl(IChatMessage message) => new DXChatMessageControl { Message = message, MessageFormatter = MessageFormatter };
 
 	/// <inheritdoc />
-	protected override IChatMessageControl CreateFunctionCallMessageControl(IChatMessage message) => new DXFunctionCallMessageControl { Message = message, AllowFunctionExpanded = AllowExpandFunctionCalls };
+	protected override IFunctionCallMessageControl CreateFunctionCallMessageControl(IChatMessage message) => new DXFunctionCallMessageControl { Message = message, AllowExpand = AllowExpandFunctionCalls };
 
 	/// <inheritdoc />
 	protected override IChatMessageControl CreateReasoningMessageControl(IChatMessage message) => new DXReasoningMessageControl { Message = message, MessageFormatter = MessageFormatter };

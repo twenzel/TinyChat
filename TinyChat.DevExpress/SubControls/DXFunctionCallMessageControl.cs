@@ -11,7 +11,7 @@ namespace TinyChat;
 /// the function name (bold), the arguments, and the result.
 /// Clicking anywhere on the control toggles the detail rows (arguments + result).
 /// </summary>
-internal sealed partial class DXFunctionCallMessageControl : PanelControl, IChatMessageControl
+internal sealed partial class DXFunctionCallMessageControl : PanelControl, IFunctionCallMessageControl
 {
 	/// <summary>
 	/// Fixed pixel width reserved for the icon column.
@@ -42,35 +42,7 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IChat
 	/// Starts collapsed.
 	/// </summary>
 	private bool _expanded;
-	private bool _allowFunctionExpanded;
-
-	/// <summary>
-	/// Whether it is allowed to see a detailed panel 
-	/// </summary>
-	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-	/// <summary>
-	/// Whether it is allowed to see a detailed panel 
-	/// </summary>
-	public bool AllowFunctionExpanded
-	{
-		get => _allowFunctionExpanded;
-		set
-		{
-			_allowFunctionExpanded = value;
-			if (_allowFunctionExpanded == true)
-			{
-				tablePanel.Cursor = Cursors.Hand;
-				lblTitle.Cursor = Cursors.Hand;
-				lblToolIcon.Cursor = Cursors.Hand;
-			}
-			else
-			{
-				tablePanel.Cursor = Cursors.Default;
-				lblTitle.Cursor = Cursors.Default;
-				lblToolIcon.Cursor = Cursors.Default;
-			}
-		}
-	}
+	private bool _allowExpand;
 
 	/// <inheritdoc/>
 	/// <remarks>Tool call messages are never streamed, so this event is intentionally a no-op.</remarks>
@@ -103,10 +75,21 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IChat
 		WireMouseDown(paddingPanel, tablePanel, lblToolIcon, lblTitle, lblArguments, lblResultIcon, lblResult);
 	}
 
-	private void WireMouseDown(params Control[] controls)
+	/// <inheritdoc/>
+	[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+	[Category("Chat")]
+	public bool AllowExpand
 	{
-		foreach (var c in controls)
-			c.MouseDown += (_, e) => OnMouseDown(e);
+		get => _allowExpand;
+		set
+		{
+			_allowExpand = value;
+
+			var cursor = _allowExpand ? Cursors.Hand : Cursors.Default;
+			tablePanel.Cursor = cursor;
+			lblTitle.Cursor = cursor;
+			lblToolIcon.Cursor = cursor;
+		}
 	}
 
 	/// <summary>
@@ -172,7 +155,7 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IChat
 	/// </summary>
 	private void Toggle(object? sender, EventArgs e)
 	{
-		if (AllowFunctionExpanded == true)
+		if (AllowExpand)
 		{
 			_expanded = !_expanded;
 			ApplyVisibility();
@@ -217,6 +200,12 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IChat
 		lblArguments.Visible = _expanded && hasArgs;
 		lblResultIcon.Visible = _expanded && hasResult;
 		lblResult.Visible = _expanded && hasResult;
+	}
+
+	private void WireMouseDown(params Control[] controls)
+	{
+		foreach (var c in controls)
+			c.MouseDown += (_, e) => OnMouseDown(e);
 	}
 
 	/// <inheritdoc/>

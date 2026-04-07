@@ -18,12 +18,6 @@ public partial class ChatControl : UserControl
 	private List<IChatMessage> _messages = [];
 
 	/// <summary>
-	/// Gets or sets whether the user is allowed to expand function call messages by clicking on them.
-	/// </summary>
-	[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-	public bool AllowExpandFunctionCalls { get; set; } = true;
-
-	/// <summary>
 	/// Occurs when a message is sent from the text box and allows the cancellation of sending.
 	/// </summary>
 	public event EventHandler<MessageSendingEventArgs>? MessageSending;
@@ -119,6 +113,23 @@ public partial class ChatControl : UserControl
 	}
 
 	/// <summary>
+	/// Gets or sets whether the user is allowed to expand function call messages by clicking on them.
+	/// </summary>
+	[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+	[Category("Chat")]
+	public bool AllowExpandFunctionCalls
+	{
+		get => _allowExpandFunctionCalls;
+		set
+		{
+			_allowExpandFunctionCalls = value;
+
+			foreach (var functionCallMessageControl in _functionCallMessageControls)
+				functionCallMessageControl.AllowExpand = value;
+		}
+	}
+
+	/// <summary>
 	/// Gets or sets the sender for messages sent from this chat control.
 	/// </summary>
 	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -193,6 +204,9 @@ public partial class ChatControl : UserControl
 	public string AssistantSenderName { get; set; } = "Assistant";
 
 	private CancellationTokenSource? _currentCancellationTokenSource;
+
+	private List<IFunctionCallMessageControl> _functionCallMessageControls = new();
+	private bool _allowExpandFunctionCalls = true;
 
 	/// <summary>
 	/// Updates the visibility of the welcome control based on the current message history.
@@ -388,6 +402,8 @@ public partial class ChatControl : UserControl
 	/// </summary>
 	private void PopulateMessages()
 	{
+		_functionCallMessageControls.Clear();
+
 		if (MessageHistoryControl is IChatMessageHistoryControl casted)
 			casted.ClearMessageControls();
 
@@ -406,11 +422,19 @@ public partial class ChatControl : UserControl
 		IChatMessageControl messageControl;
 
 		if (message.Content is FunctionCallMessageContent)
-			messageControl = CreateFunctionCallMessageControl(message);
+		{
+			var functionCallMessageControl = CreateFunctionCallMessageControl(message);
+			messageControl = functionCallMessageControl;
+			_functionCallMessageControls.Add(functionCallMessageControl);
+		}
 		else if (message.Content is ReasoningMessageContent)
+		{
 			messageControl = CreateReasoningMessageControl(message);
+		}
 		else
+		{
 			messageControl = CreateMessageControl(message);
+		}
 
 		messageControl.Message = message;
 
@@ -494,7 +518,7 @@ public partial class ChatControl : UserControl
 	/// </summary>
 	/// <param name="message">The chat message to create a control for.</param>
 	/// <returns>An <see cref="IChatMessageControl"/> instance for the message.</returns>
-	protected virtual IChatMessageControl CreateFunctionCallMessageControl(IChatMessage message) => new FunctionCallMessageControl { Message = message, AllowExpand = AllowExpandFunctionCalls };
+	protected virtual IFunctionCallMessageControl CreateFunctionCallMessageControl(IChatMessage message) => new FunctionCallMessageControl { Message = message, AllowExpand = AllowExpandFunctionCalls };
 
 	/// <summary>
 	/// Creates a control for displaying reasoning message

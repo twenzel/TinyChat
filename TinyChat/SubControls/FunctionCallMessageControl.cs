@@ -8,7 +8,7 @@ namespace TinyChat;
 /// the function name (bold), the arguments, and the result.
 /// Clicking anywhere on the control toggles the detail rows (arguments + result).
 /// </summary>
-internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageControl
+internal sealed partial class FunctionCallMessageControl : Panel, IFunctionCallMessageControl
 {
 	/// <summary>
 	/// Icon used to mark the function-call row.
@@ -31,6 +31,7 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 	/// Starts collapsed.
 	/// </summary>
 	private bool _expanded;
+	private bool _allowExpand;
 
 	/// <inheritdoc/>
 	/// <remarks>Tool call messages are never streamed, so this event is intentionally a no-op.</remarks>
@@ -63,17 +64,22 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 		WireMouseDown(tableLayout, lblIcon, lblTitle, lblArgs, lblResultIcon, lblResult);
 	}
 
-	private void WireMouseDown(params Control[] controls)
-	{
-		foreach (var c in controls)
-			c.MouseDown += (_, e) => OnMouseDown(e);
-	}
-
-	/// <summary>
-	/// Gets or sets whether the user is allowed to expand function call messages by clicking on them.
-	/// </summary>
+	/// <inheritdoc/>
 	[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-	public bool AllowExpand { get; set; }
+	[Category("Chat")]
+	public bool AllowExpand
+	{
+		get => _allowExpand;
+		set
+		{
+			_allowExpand = value;
+
+			var cursor = _allowExpand ? Cursors.Hand : Cursors.Default;
+			tableLayout.Cursor = cursor;
+			lblTitle.Cursor = cursor;
+			lblIcon.Cursor = cursor;
+		}
+	}
 
 	/// <summary>
 	/// Gets or sets the chat message to display.
@@ -176,11 +182,6 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 	/// </summary>
 	private void ApplyVisibility()
 	{
-		var cursor = _expanded ? Cursors.Hand : Cursors.Default;
-		tableLayout.Cursor = cursor;
-		lblTitle.Cursor = cursor;
-		lblIcon.Cursor = cursor;
-
 		if (_message?.Content is not FunctionCallMessageContent fc)
 			return;
 
@@ -191,6 +192,12 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 		lblResultIcon.Visible = _expanded && hasResult;
 
 		lblResult.Visible = _expanded && hasResult;
+	}
+
+	private void WireMouseDown(params Control[] controls)
+	{
+		foreach (var c in controls)
+			c.MouseDown += (_, e) => OnMouseDown(e);
 	}
 
 	/// <inheritdoc/>
