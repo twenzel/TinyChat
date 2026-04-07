@@ -17,8 +17,12 @@ public partial class ChatControl : UserControl
 
 	private List<IChatMessage> _messages = [];
 
-	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-	public bool AllowFunctionExpanded { get; set; } = false;
+	/// <summary>
+	/// Gets or sets whether the user is allowed to expand function call messages by clicking on them.
+	/// </summary>
+	[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+	public bool AllowExpandFunctionCalls { get; set; } = true;
+
 	/// <summary>
 	/// Occurs when a message is sent from the text box and allows the cancellation of sending.
 	/// </summary>
@@ -490,7 +494,7 @@ public partial class ChatControl : UserControl
 	/// </summary>
 	/// <param name="message">The chat message to create a control for.</param>
 	/// <returns>An <see cref="IChatMessageControl"/> instance for the message.</returns>
-	protected virtual IChatMessageControl CreateFunctionCallMessageControl(IChatMessage message) => new FunctionCallMessageControl { Message = message, AllowFunctionExpanded = AllowFunctionExpanded };
+	protected virtual IChatMessageControl CreateFunctionCallMessageControl(IChatMessage message) => new FunctionCallMessageControl { Message = message, AllowExpand = AllowExpandFunctionCalls };
 
 	/// <summary>
 	/// Creates a control for displaying reasoning message

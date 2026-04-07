@@ -31,7 +31,6 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 	/// Starts collapsed.
 	/// </summary>
 	private bool _expanded;
-	private bool _allowFunctionExpanded;
 
 	/// <inheritdoc/>
 	/// <remarks>Tool call messages are never streamed, so this event is intentionally a no-op.</remarks>
@@ -71,31 +70,16 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 	}
 
 	/// <summary>
+	/// Gets or sets whether the user is allowed to expand function call messages by clicking on them.
+	/// </summary>
+	[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+	public bool AllowExpand { get; set; }
+
+	/// <summary>
 	/// Gets or sets the chat message to display.
 	/// The message's <see cref="IChatMessage.Content"/> must be a
 	/// <see cref="FunctionCallMessageContent"/> for any content to be rendered.
 	/// </summary>
-	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-	public bool AllowFunctionExpanded
-	{
-		get => _allowFunctionExpanded;
-		set
-		{
-			_allowFunctionExpanded = value;
-			if (_allowFunctionExpanded == true)
-			{
-				tableLayout.Cursor = Cursors.Hand;
-				lblTitle.Cursor = Cursors.Hand;
-				lblIcon.Cursor = Cursors.Hand;
-			}
-			else
-			{
-				tableLayout.Cursor = Cursors.Default;
-				lblTitle.Cursor = Cursors.Default;
-				lblIcon.Cursor = Cursors.Default;
-			}
-		}
-	}
 	[System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
 	public IChatMessage? Message
 	{
@@ -153,7 +137,7 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 	/// </summary>
 	private void Toggle(object? sender, EventArgs e)
 	{
-		if (AllowFunctionExpanded == true)
+		if (AllowExpand)
 		{
 			_expanded = !_expanded;
 			ApplyVisibility();
@@ -192,6 +176,11 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 	/// </summary>
 	private void ApplyVisibility()
 	{
+		var cursor = _expanded ? Cursors.Hand : Cursors.Default;
+		tableLayout.Cursor = cursor;
+		lblTitle.Cursor = cursor;
+		lblIcon.Cursor = cursor;
+
 		if (_message?.Content is not FunctionCallMessageContent fc)
 			return;
 
@@ -200,6 +189,7 @@ internal sealed partial class FunctionCallMessageControl : Panel, IChatMessageCo
 
 		lblArgs.Visible = _expanded && hasArgs;
 		lblResultIcon.Visible = _expanded && hasResult;
+
 		lblResult.Visible = _expanded && hasResult;
 	}
 
