@@ -15,10 +15,14 @@ public class DXChatMessageControl : PanelControl, IChatMessageControl
 	private readonly LabelControl _senderLabel;
 	private readonly LabelControl _messageLabel;
 
-	/// <summary>
-	/// The event that is raised when the size of the control is updated while streaming a message.
-	/// </summary>
+	/// <inheritdoc/>
 	public event EventHandler? SizeUpdatedWhileStreaming;
+
+	/// <inheritdoc/>
+	public event EventHandler? BeforeLayoutChange;
+
+	/// <inheritdoc/>
+	public event EventHandler? AfterLayoutChange;
 
 	/// <summary>
 	/// Gets or sets the formatter that converts message content into displayable strings.

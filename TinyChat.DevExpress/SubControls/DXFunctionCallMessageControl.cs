@@ -49,6 +49,12 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IFunc
 	public event EventHandler? SizeUpdatedWhileStreaming { add { } remove { } }
 
 	/// <inheritdoc/>
+	public event EventHandler? BeforeLayoutChange;
+
+	/// <inheritdoc/>
+	public event EventHandler? AfterLayoutChange;
+
+	/// <inheritdoc/>
 	/// <remarks>Tool call messages are never streamed, so this method is intentionally a no-op.</remarks>
 	void IChatMessageControl.SetIsReceivingStream(bool isReceiving) { }
 
@@ -72,7 +78,7 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IFunc
 		lblResult.Font = lblTitle.Font;
 		lblArguments.Font = new Font(lblTitle.Font.FontFamily, lblTitle.Font.Size - 1);
 
-		WireMouseDown(paddingPanel, tablePanel, lblToolIcon, lblTitle, lblArguments, lblResultIcon, lblResult);
+		WireMouseDown(paddingPanel, tableLayout, lblToolIcon, lblTitle, lblArguments, lblResultIcon, lblResult);
 	}
 
 	/// <inheritdoc/>
@@ -86,7 +92,7 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IFunc
 			_allowExpand = value;
 
 			var cursor = _allowExpand ? Cursors.Hand : Cursors.Default;
-			tablePanel.Cursor = cursor;
+			tableLayout.Cursor = cursor;
 			lblTitle.Cursor = cursor;
 			lblToolIcon.Cursor = cursor;
 		}
@@ -194,12 +200,20 @@ internal sealed partial class DXFunctionCallMessageControl : PanelControl, IFunc
 		if (_message?.Content is not FunctionCallMessageContent fc)
 			return;
 
+		BeforeLayoutChange?.Invoke(this, EventArgs.Empty);
+		SuspendLayout();
+		tableLayout.SuspendLayout();
+
 		var hasArgs = fc.Arguments?.Count > 0;
 		var hasResult = fc.Result is not null;
 
 		lblArguments.Visible = _expanded && hasArgs;
 		lblResultIcon.Visible = _expanded && hasResult;
 		lblResult.Visible = _expanded && hasResult;
+
+		tableLayout.ResumeLayout();
+		ResumeLayout();
+		AfterLayoutChange?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void WireMouseDown(params Control[] controls)

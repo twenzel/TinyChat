@@ -1,6 +1,5 @@
 using DevExpress.Utils.Layout;
 using DevExpress.XtraEditors;
-using System.ComponentModel;
 
 namespace TinyChat;
 
@@ -48,11 +47,14 @@ public class StackPanelMessageHistoryControl : XtraScrollableControl, IChatMessa
 		// queue this to the UI thread to ensure it runs after the control is added
 		// otherwise the sizing of the labels will be incorrect if the scrollbar
 		// is not visible
-		this.BeginInvoke(() =>
+		BeginInvoke(() =>
 		{
 			SetSizeConstraints(control);
 			ScrollControlIntoView(control);
+
 			messageControl.SizeUpdatedWhileStreaming += MessageControlStreamingSizeUpdate;
+			messageControl.BeforeLayoutChange += BeforeMessageLayoutChange;
+			messageControl.AfterLayoutChange += AfterMessageLayoutChange;
 		});
 	}
 
@@ -63,8 +65,11 @@ public class StackPanelMessageHistoryControl : XtraScrollableControl, IChatMessa
 	{
 		foreach (var messageControl in _stackPanel.Controls.OfType<IChatMessageControl>())
 		{
-			var control = (Control)messageControl;
 			messageControl.SizeUpdatedWhileStreaming -= MessageControlStreamingSizeUpdate;
+			messageControl.BeforeLayoutChange -= BeforeMessageLayoutChange;
+			messageControl.AfterLayoutChange -= AfterMessageLayoutChange;
+
+			var control = (Control)messageControl;
 			control.MouseDown -= OnMessageControlMouseDown;
 		}
 
@@ -145,15 +150,6 @@ public class StackPanelMessageHistoryControl : XtraScrollableControl, IChatMessa
 		_shouldFollowStreamScroll = !didScrollUp && didScrollToBottom;
 	}
 
-	private void MessageControlStreamingSizeUpdate(object? sender, EventArgs args)
-	{
-		// can't use ScrollControlIntoView() because this will stop scrolling
-		// once the message controls gets larger than the flow layout panel
-		if (_shouldFollowStreamScroll)
-			BeginInvoke(() => VerticalScroll.Value = MaxVerticalScroll);
-	}
-
-
 	/// <inheritdoc/>
 	protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 	{
@@ -176,5 +172,23 @@ public class StackPanelMessageHistoryControl : XtraScrollableControl, IChatMessa
 			_selectedMessageControl = sender as IChatMessageControl;
 			Focus(); // required to use ProcessCmdKey()
 		}
+	}
+
+	private void MessageControlStreamingSizeUpdate(object? sender, EventArgs args)
+	{
+		// can't use ScrollControlIntoView() because this will stop scrolling
+		// once the message controls gets larger than the flow layout panel
+		if (_shouldFollowStreamScroll)
+			BeginInvoke(() => VerticalScroll.Value = MaxVerticalScroll);
+	}
+
+	private void BeforeMessageLayoutChange(object? sender, EventArgs e)
+	{
+		SuspendLayout();
+	}
+
+	private void AfterMessageLayoutChange(object? sender, EventArgs e)
+	{
+		ResumeLayout();
 	}
 }

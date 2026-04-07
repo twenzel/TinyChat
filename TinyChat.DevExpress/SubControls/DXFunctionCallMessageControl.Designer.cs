@@ -26,9 +26,9 @@ partial class DXFunctionCallMessageControl
 		lblTitle = new LabelControl();
 		lblArguments = new LabelControl();
 		lblResult = new LabelControl();
-		tablePanel = new TableLayoutPanel();
+		tableLayout = new TableLayoutPanel();
 		paddingPanel = new PanelControl();
-		tablePanel.SuspendLayout();
+		tableLayout.SuspendLayout();
 		paddingPanel.SuspendLayout();
 		SuspendLayout();
 
@@ -82,32 +82,32 @@ partial class DXFunctionCallMessageControl
 		//
 		// IMPORTANT: do NOT put any always-visible control in rows 1 or 2;
 		// a hidden control contributes 0 height, so the row collapses automatically.
-		tablePanel.AutoSize = true;
-		tablePanel.CellBorderStyle = TableLayoutPanelCellBorderStyle.None;
-		tablePanel.ColumnCount = 2;
-		tablePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, ICON_WIDTH));
-		tablePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-		tablePanel.Controls.Add(lblToolIcon, 0, 0);
-		tablePanel.Controls.Add(lblTitle, 1, 0);
+		tableLayout.AutoSize = true;
+		tableLayout.CellBorderStyle = TableLayoutPanelCellBorderStyle.None;
+		tableLayout.ColumnCount = 2;
+		tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, ICON_WIDTH));
+		tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+		tableLayout.Controls.Add(lblToolIcon, 0, 0);
+		tableLayout.Controls.Add(lblTitle, 1, 0);
 
 		// Row 1, col 0 intentionally left empty - no spacer, so the row fully
 		// collapses when _argsLabel is hidden.
-		tablePanel.Controls.Add(lblArguments, 1, 1);
-		tablePanel.Controls.Add(lblResultIcon, 0, 2);
-		tablePanel.Controls.Add(lblResult, 1, 2);
-		tablePanel.Dock = DockStyle.Fill;
-		tablePanel.Margin = Padding.Empty;
-		tablePanel.Padding = Padding.Empty;
-		tablePanel.RowCount = 3;
-		tablePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-		tablePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-		tablePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+		tableLayout.Controls.Add(lblArguments, 1, 1);
+		tableLayout.Controls.Add(lblResultIcon, 0, 2);
+		tableLayout.Controls.Add(lblResult, 1, 2);
+		tableLayout.Dock = DockStyle.Fill;
+		tableLayout.Margin = Padding.Empty;
+		tableLayout.Padding = Padding.Empty;
+		tableLayout.RowCount = 3;
+		tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+		tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+		tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
 		// _borderPanel (provides the visible border and padding around the content)
 		paddingPanel.AutoSize = true;
 		paddingPanel.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
 		paddingPanel.BackColor = Color.Transparent;
-		paddingPanel.Controls.Add(tablePanel);
+		paddingPanel.Controls.Add(tableLayout);
 		paddingPanel.Cursor = Cursors.Hand;
 		paddingPanel.Dock = DockStyle.Fill;
 		paddingPanel.Padding = new Padding(0);
@@ -122,15 +122,15 @@ partial class DXFunctionCallMessageControl
 		Padding = new Padding(3, 0, 0, 0);
 		Click += Toggle;
 		paddingPanel.Click += Toggle;
-		tablePanel.Click += Toggle;
+		tableLayout.Click += Toggle;
 		lblToolIcon.Click += Toggle;
 		lblTitle.Click += Toggle;
 		lblArguments.Click += Toggle;
 		lblResultIcon.Click += Toggle;
 		lblResult.Click += Toggle;
 
-		tablePanel.ResumeLayout(false);
-		tablePanel.PerformLayout();
+		tableLayout.ResumeLayout(false);
+		tableLayout.PerformLayout();
 		paddingPanel.ResumeLayout(false);
 		paddingPanel.PerformLayout();
 		ResumeLayout(false);
@@ -138,7 +138,7 @@ partial class DXFunctionCallMessageControl
 	}
 
 	private LabelControl lblSender;
-	private TableLayoutPanel tablePanel;
+	private TableLayoutPanel tableLayout;
 	private LabelControl lblToolIcon;
 	private LabelControl lblTitle;
 	private LabelControl lblArguments;

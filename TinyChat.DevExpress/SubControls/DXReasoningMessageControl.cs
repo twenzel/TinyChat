@@ -36,6 +36,12 @@ internal sealed partial class DXReasoningMessageControl : PanelControl, IChatMes
 	/// <inheritdoc/>
 	public event EventHandler? SizeUpdatedWhileStreaming;
 
+	/// <inheritdoc/>
+	public event EventHandler? BeforeLayoutChange;
+
+	/// <inheritdoc/>
+	public event EventHandler? AfterLayoutChange;
+
 	/// <summary>
 	/// Gets or sets the formatter that converts message content into displayable strings.
 	/// </summary>
@@ -118,9 +124,17 @@ internal sealed partial class DXReasoningMessageControl : PanelControl, IChatMes
 	/// <param name="e">Event data (not used).</param>
 	private void Toggle(object? sender, EventArgs e)
 	{
+		BeforeLayoutChange?.Invoke(this, EventArgs.Empty);
+		SuspendLayout();
+		tableLayout.SuspendLayout();
+
 		_expanded = !_expanded;
 		lblDetail.Visible = _expanded;
 		UpdateHeader();
+
+		tableLayout.ResumeLayout();
+		ResumeLayout();
+		AfterLayoutChange?.Invoke(this, EventArgs.Empty);
 	}
 
 	/// <summary>

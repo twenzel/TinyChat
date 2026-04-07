@@ -38,6 +38,8 @@ public class FlowLayoutMessageHistoryControl : FlowLayoutPanel, IChatMessageHist
 		ScrollControlIntoView(control);
 
 		messageControl.SizeUpdatedWhileStreaming += MessageControlStreamingSizeUpdate;
+		messageControl.BeforeLayoutChange += BeforeMessageLayoutChange;
+		messageControl.AfterLayoutChange += AfterMessageLayoutChange;
 	}
 
 	/// <summary>
@@ -47,8 +49,11 @@ public class FlowLayoutMessageHistoryControl : FlowLayoutPanel, IChatMessageHist
 	{
 		foreach (var messageControl in Controls.OfType<IChatMessageControl>())
 		{
-			var control = (Control)messageControl;
 			messageControl.SizeUpdatedWhileStreaming -= MessageControlStreamingSizeUpdate;
+			messageControl.BeforeLayoutChange -= BeforeMessageLayoutChange;
+			messageControl.AfterLayoutChange -= AfterMessageLayoutChange;
+
+			var control = (Control)messageControl;
 			control.MouseDown -= OnMessageControlMouseDown;
 		}
 
@@ -121,14 +126,6 @@ public class FlowLayoutMessageHistoryControl : FlowLayoutPanel, IChatMessageHist
 		_shouldFollowStreamScroll = !didScrollUp && didScrollToBottom;
 	}
 
-	private void MessageControlStreamingSizeUpdate(object? sender, EventArgs args)
-	{
-		// can't use ScrollControlIntoView() because this will stop scrolling
-		// once the message controls gets larger than the flow layout panel
-		if (_shouldFollowStreamScroll)
-			BeginInvoke(() => VerticalScroll.Value = MaxVerticalScroll);
-	}
-
 	/// <inheritdoc/>
 	protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 	{
@@ -151,5 +148,23 @@ public class FlowLayoutMessageHistoryControl : FlowLayoutPanel, IChatMessageHist
 			_selectedMessageControl = sender as IChatMessageControl;
 			Focus(); // required to use ProcessCmdKey()
 		}
+	}
+
+	private void MessageControlStreamingSizeUpdate(object? sender, EventArgs args)
+	{
+		// can't use ScrollControlIntoView() because this will stop scrolling
+		// once the message controls gets larger than the flow layout panel
+		if (_shouldFollowStreamScroll)
+			BeginInvoke(() => VerticalScroll.Value = MaxVerticalScroll);
+	}
+
+	private void BeforeMessageLayoutChange(object? sender, EventArgs e)
+	{
+		SuspendLayout();
+	}
+
+	private void AfterMessageLayoutChange(object? sender, EventArgs e)
+	{
+		ResumeLayout();
 	}
 }

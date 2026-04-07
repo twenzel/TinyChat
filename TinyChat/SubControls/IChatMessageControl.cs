@@ -6,6 +6,16 @@ namespace TinyChat;
 public interface IChatMessageControl
 {
 	/// <summary>
+	/// The event that is raised when before significant changes will be made to the layout
+	/// </summary>
+	public event EventHandler? BeforeLayoutChange;
+
+	/// <summary>
+	/// The event that is raised when after significant changes have been made to the layout
+	/// </summary>
+	public event EventHandler? AfterLayoutChange;
+
+	/// <summary>
 	/// The event that is raised when the size of the control is updated while streaming a message.
 	/// </summary>
 	public event EventHandler? SizeUpdatedWhileStreaming;
