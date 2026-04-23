@@ -31,6 +31,15 @@ public partial class ChatControl : UserControl
 	/// Occurs before a request is sent to the <see cref="IChatClient"/>, allowing the developer to define or modify <see cref="Microsoft.Extensions.AI.ChatOptions"/>.
 	/// </summary>
 	public event EventHandler<ChatOptionsRequestedEventArgs>? ChatOptionsRequested;
+
+	/// <summary>
+	/// Occurs when an error is thrown during message processing, either from the <see cref="IChatClient"/>
+	/// or from a streaming operation started via AddStreamingMessage.
+	/// Set <see cref="Helper.ChatErrorEventArgs.Handled"/> to <see langword="true"/> to suppress the default
+	/// "System" error message and any pending re-throw.
+	/// </summary>
+	public event EventHandler<Helper.ChatErrorEventArgs>? ErrorOccurred;
+
 	/// <summary>
 	/// Gets the control that manages and displays the chat message history.
 	/// </summary>
@@ -302,8 +311,10 @@ public partial class ChatControl : UserControl
 			}
 			catch (Exception ex)
 			{
+				var errorArgs = new Helper.ChatErrorEventArgs(ex);
+				ErrorOccurred?.Invoke(this, errorArgs);
 				exceptionCallback?.Invoke(ex);
-				if (!cancellationSource.Token.IsCancellationRequested)
+				if (!errorArgs.Handled && !cancellationSource.Token.IsCancellationRequested)
 					throw;
 			}
 			finally
@@ -672,22 +683,17 @@ public partial class ChatControl : UserControl
 	{
 		try
 		{
-			// Only proceed if we have a service provider
 			if (ServiceProvider is null)
 				return;
 
-			// Try to resolve the IChatClient
 			var chatClient = ResolveChatClient();
 			if (chatClient is null)
 				return;
 
-			// Cancel any existing IChatClient operation
 			_currentCancellationTokenSource = new CancellationTokenSource();
 
-			// Convert message history to Microsoft.Extensions.AI format
 			var chatMessages = ConvertToChatMessages();
 
-			// Resolve chat options, allowing subscribers to override them via event
 			var chatOptionsArgs = new ChatOptionsRequestedEventArgs(ChatOptions);
 			ChatOptionsRequested?.Invoke(this, chatOptionsArgs);
 			var chatOptions = chatOptionsArgs.ChatOptions;
@@ -715,8 +721,10 @@ public partial class ChatControl : UserControl
 			}
 			catch (Exception ex)
 			{
-				// Display error message in chat
-				AddMessage(new NamedSender("System"), new StringMessageContent($"Error: {ex.Message}"));
+				var errorArgs = new Helper.ChatErrorEventArgs(ex);
+				ErrorOccurred?.Invoke(this, errorArgs);
+				if (!errorArgs.Handled)
+					AddMessage(new NamedSender("System"), new StringMessageContent($"Error: {ex.Message}"));
 			}
 			finally
 			{
@@ -729,7 +737,10 @@ public partial class ChatControl : UserControl
 			// Since this is an async void method, unhandled exceptions would terminate the application
 			try
 			{
-				AddMessage(new NamedSender("System"), new StringMessageContent($"Unexpected error: {ex.Message}"));
+				var errorArgs = new Helper.ChatErrorEventArgs(ex);
+				ErrorOccurred?.Invoke(this, errorArgs);
+				if (!errorArgs.Handled)
+					AddMessage(new NamedSender("System"), new StringMessageContent($"Unexpected error: {ex.Message}"));
 			}
 			catch
 			{
