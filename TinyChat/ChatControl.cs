@@ -690,7 +690,8 @@ public partial class ChatControl : UserControl
 			if (chatClient is null)
 				return;
 
-			_currentCancellationTokenSource = new CancellationTokenSource();
+			var cancellationSource = new CancellationTokenSource();
+			_currentCancellationTokenSource = cancellationSource;
 
 			var chatMessages = ConvertToChatMessages();
 
@@ -705,13 +706,13 @@ public partial class ChatControl : UserControl
 				if (UseStreaming)
 				{
 					// Use streaming response
-					var streamingResponse = chatClient.GetStreamingResponseAsync(chatMessages, chatOptions, cancellationToken: _currentCancellationTokenSource.Token);
-					await HandleStreamingResponseAsync(assistantSender, streamingResponse, _currentCancellationTokenSource.Token).ConfigureAwait(true);
+					var streamingResponse = chatClient.GetStreamingResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationSource.Token);
+					await HandleStreamingResponseAsync(assistantSender, streamingResponse, cancellationSource.Token).ConfigureAwait(true);
 				}
 				else
 				{
 					// Use non-streaming response
-					var response = await chatClient.GetResponseAsync(chatMessages, chatOptions, cancellationToken: _currentCancellationTokenSource.Token).ConfigureAwait(true);
+					var response = await chatClient.GetResponseAsync(chatMessages, chatOptions, cancellationToken: cancellationSource.Token).ConfigureAwait(true);
 					HandleNonStreamingResponse(assistantSender, response);
 				}
 			}
@@ -728,7 +729,7 @@ public partial class ChatControl : UserControl
 			}
 			finally
 			{
-				_currentCancellationTokenSource?.Dispose();
+				cancellationSource.Dispose();
 			}
 		}
 		catch (Exception ex)
